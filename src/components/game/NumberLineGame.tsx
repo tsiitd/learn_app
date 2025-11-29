@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown, RefreshCw, Volume2, Settings } from "lucide-react";
 import AnimalRow from "./AnimalRow";
 import BottomNumberLine from "./BottomNumberLine";
-import { ANIMAL_ROWS, LANGUAGES, PHRASES, MAX_NUMBER_OPTIONS, LanguageCode, VISIBLE_ROWS_COUNT } from "@/lib/constants";
+import { ANIMAL_ROWS, LANGUAGES, PHRASES, MAX_NUMBER_OPTIONS, LanguageCode, VISIBLE_ROWS_COUNT, BACKGROUND_PATTERNS } from "@/lib/constants";
 import { useGameSettings } from "@/lib/store";
 import { numberToDigitSpeech, playAnimalSound, playDingSound } from "@/lib/audio";
 import confetti from "canvas-confetti";
@@ -21,6 +21,9 @@ export default function NumberLineGame() {
     const [hintEnabled, setHintEnabled] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [windowStartRow, setWindowStartRow] = useState(0);
+    const [backgroundPattern, setBackgroundPattern] = useState(
+        BACKGROUND_PATTERNS[Math.floor(Math.random() * BACKGROUND_PATTERNS.length)].pattern
+    );
     const gameContainerRef = useRef<HTMLDivElement>(null);
     const activeRowRef = useRef<HTMLDivElement>(null);
 
@@ -33,6 +36,10 @@ export default function NumberLineGame() {
         setWindowStartRow(0);
         setIsPlaying(true);
         setShowSuccess(false);
+
+        // Randomly select a new background pattern
+        const randomPattern = BACKGROUND_PATTERNS[Math.floor(Math.random() * BACKGROUND_PATTERNS.length)];
+        setBackgroundPattern(randomPattern.pattern);
 
         const digitSpeech = numberToDigitSpeech(newTarget, language);
         speakText(`${PHRASES.findNumber[language]} ${digitSpeech}`);
@@ -158,12 +165,16 @@ export default function NumberLineGame() {
     }, [currentRow, windowStartRow]);
 
     // Calculate visible rows
-    const visibleRows = ANIMAL_ROWS.slice(windowStartRow, Math.min(windowStartRow + VISIBLE_ROWS_COUNT, maxRows));
+    const windowEndRow = Math.min(windowStartRow + VISIBLE_ROWS_COUNT, maxRows);
+    const visibleRows = ANIMAL_ROWS.slice(windowStartRow, windowEndRow);
 
     return (
         <div className="flex flex-col h-screen max-h-screen overflow-hidden bg-sky-50">
             {/* HUD */}
-            <div className="flex-none p-4 bg-white shadow-sm z-20 flex justify-between items-center">
+            <div
+                className="flex-none p-4 bg-white shadow-sm z-20 flex justify-between items-center"
+                style={{ backgroundImage: `url("${backgroundPattern}")` }}
+            >
                 <Button variant="ghost" onClick={() => window.history.back()}>
                     <ArrowLeft className="mr-2" /> Back
                 </Button>
@@ -176,10 +187,22 @@ export default function NumberLineGame() {
 
                     <div className="text-2xl font-bold text-gray-400">vs</div>
 
-                    <Card className="px-6 py-2 bg-green-50 border-green-200 flex flex-col items-center animate-pulse">
-                        <span className="text-sm text-green-600 font-bold uppercase">{PHRASES.target[language]}</span>
-                        <span className="text-4xl font-black text-secondary-green">{targetNumber}</span>
-                    </Card>
+                    <motion.div
+                        animate={{
+                            rotate: [0, -3, 3, -3, 3, 0],
+                            scale: [1, 1.05, 1, 1.05, 1]
+                        }}
+                        transition={{
+                            duration: 0.6,
+                            repeat: Infinity,
+                            repeatDelay: 0.5
+                        }}
+                    >
+                        <Card className="px-8 py-3 bg-green-50 border-green-300 border-2 flex flex-col items-center shadow-lg">
+                            <span className="text-base text-green-600 font-bold uppercase">{PHRASES.target[language]}</span>
+                            <span className="text-6xl font-black text-secondary-green">{targetNumber}</span>
+                        </Card>
+                    </motion.div>
                 </div>
 
                 <div className="flex gap-2">
@@ -208,6 +231,7 @@ export default function NumberLineGame() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     className="flex-none bg-white border-b border-gray-200 p-4 flex gap-6 items-center justify-center"
+                    style={{ backgroundImage: `url("${backgroundPattern}")` }}
                 >
                     <div className="flex gap-2 items-center">
                         <span className="font-bold">Max Number:</span>
@@ -239,24 +263,30 @@ export default function NumberLineGame() {
             )}
 
             {/* Game Area */}
-            <div ref={gameContainerRef} className="flex-1 overflow-hidden p-4 flex items-center justify-center">
-                <div className="flex flex-col gap-1 w-full">
-                    <AnimatePresence mode="popLayout" initial={false}>
+            <div
+                ref={gameContainerRef}
+                className="flex-1 overflow-hidden p-4 flex items-center justify-center bg-gradient-to-br from-sky-50 to-blue-50 relative"
+            >
+                {/* Background pattern layer with lower opacity */}
+                <div
+                    className="absolute inset-0 opacity-40"
+                    style={{ backgroundImage: `url("${backgroundPattern}")` }}
+                />
+                <div className="flex flex-col gap-1 w-full relative z-10">
+                    <AnimatePresence initial={false}>
                         {visibleRows.map((row) => {
                             const isActive = row.id === currentRow;
                             return (
                                 <motion.div
                                     key={row.id}
                                     ref={isActive ? activeRowRef : null}
-                                    layout
-                                    initial={{ opacity: 0, y: 20 }}
+                                    initial={{ opacity: 0, scale: 0.5 }}
                                     animate={{
-                                        opacity: isActive ? 1 : 0.5,
+                                        opacity: 1,
                                         scale: isActive ? 0.95 : 0.75,
-                                        y: 0
                                     }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                                    exit={{ opacity: 0, scale: 0.5 }}
+                                    transition={{ duration: 0.3 }}
                                     className="w-full"
                                 >
                                     <AnimalRow
@@ -276,23 +306,28 @@ export default function NumberLineGame() {
             <BottomNumberLine currentNumber={currentNumber} targetNumber={targetNumber} />
 
             {/* On-screen Controls */}
-            <div className="flex-none p-2 bg-white border-t border-gray-100 flex justify-center gap-2">
-                <Button size="md" variant="secondary" onClick={() => move("UP")}>
+            <div
+                className="flex-none p-2 bg-white border-t border-gray-100 flex justify-center gap-2"
+                style={{ backgroundImage: `url("${backgroundPattern}")` }}
+            >
+                <Button size="md" variant="primary" onClick={() => move("UP")}>
                     <ArrowUp className="w-6 h-6" />
                 </Button>
                 <div className="flex gap-2">
-                    <Button size="md" variant="primary" onClick={() => move("LEFT")}>
+                    <Button size="md" variant="secondary" onClick={() => move("LEFT")}>
                         <ArrowLeft className="w-6 h-6" />
                     </Button>
-                    <Button size="md" variant="primary" onClick={() => move("RIGHT")}>
+                    <Button size="md" variant="secondary" onClick={() => move("RIGHT")}>
                         <ArrowRight className="w-6 h-6" />
                     </Button>
                 </div>
-                <Button size="md" variant="secondary" onClick={() => move("DOWN")}>
+                <Button size="md" variant="primary" onClick={() => move("DOWN")}>
                     <ArrowDown className="w-6 h-6" />
                 </Button>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <Button size="md" variant="primary" className="bg-green-500 hover:bg-green-600 border-green-700 w-24 font-bold" onClick={checkAnswer}>
-                    GO!
+                    Enter
                 </Button>
             </div>
 

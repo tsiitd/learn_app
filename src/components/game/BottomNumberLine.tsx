@@ -29,10 +29,10 @@ export default function BottomNumberLine({
                             {/* Tick Mark */}
                             <div
                                 className={cn(
-                                    "w-0.5 mb-1",
-                                    isCurrent ? "h-8 bg-blue-500" :
-                                    isTarget ? "h-8 bg-green-500" :
-                                    isTen ? "h-6 bg-gray-400" : "h-3 bg-gray-200"
+                                    "mb-1",
+                                    isCurrent ? "w-1 h-10 bg-blue-700" :
+                                    isTarget ? "w-1 h-10 bg-green-700" :
+                                    isTen ? "w-0.5 h-6 bg-gray-400" : "w-0.5 h-3 bg-gray-200"
                                 )}
                             />
 
@@ -40,9 +40,9 @@ export default function BottomNumberLine({
                             {showNumber && (
                                 <motion.div
                                     animate={{
-                                        scale: isCurrent ? 1.3 : 1,
-                                        color: isCurrent ? "#3B82F6" : isTarget ? "#22C55E" : "#6B7280",
-                                        fontWeight: isCurrent || isTarget ? "900" : "600",
+                                        scale: isCurrent ? 1.25 : isTarget ? 1.25 : 1,
+                                        color: isCurrent ? "#1D4ED8" : isTarget ? "#15803D" : "#6B7280",
+                                        fontWeight: isCurrent || isTarget ? "500" : "500",
                                     }}
                                     className="text-xs transition-colors whitespace-nowrap"
                                 >
