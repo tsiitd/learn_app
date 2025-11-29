@@ -16,22 +16,38 @@ export function numberToDigitSpeech(num: number, language: string = 'en'): strin
     return `${digitSpeech} - ${num}`;
 }
 
-// Play animal sound from audio file
+// Play animal sound only on row changes (shorter sounds < 2s)
 export function playAnimalSound(rowId: number, soundEnabled: boolean = true): void {
     if (!soundEnabled) return;
 
-    // Map of available animal sounds (only use animals we have sounds for)
     const animalSounds: Record<number, string> = {
-        0: '/sounds/dog.mp3',
-        1: '/sounds/cat.mp3',
-        2: '/sounds/mouse.mp3',
-        // Add more as sounds become available
+        0: '/sounds/dog.wav',
+        1: '/sounds/cat.wav',
+        2: '/sounds/mouse.wav',
+        3: '/sounds/rabbit.wav',
+        4: '/sounds/fox.wav',
+        5: '/sounds/bear.wav',
+        6: '/sounds/panda.wav',
+        7: '/sounds/koala.wav',
+        8: '/sounds/tiger.mp3',
+        9: '/sounds/lion.wav',
     };
 
-    const soundPath = animalSounds[rowId];
-    if (!soundPath) return; // No sound available for this animal
+    const soundUrl = animalSounds[rowId];
+    if (!soundUrl) return;
 
-    const audio = new Audio(soundPath);
-    audio.volume = 0.3; // Not too loud
-    audio.play().catch(err => console.log('Audio play failed:', err));
+    const audio = new Audio(soundUrl);
+    audio.volume = 0.3;
+    audio.play().catch(() => { });
+}
+
+// Play ding sound for number changes within same row
+export function playDingSound(soundEnabled: boolean = true): void {
+    if (!soundEnabled) return;
+
+    const dingUrl = '/sounds/ding.flac';
+
+    const audio = new Audio(dingUrl);
+    audio.volume = 0.2;
+    audio.play().catch(() => { });
 }

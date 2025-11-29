@@ -7,36 +7,32 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown, RefreshCw, Volume2, Settings } from "lucide-react";
 import AnimalRow from "./AnimalRow";
 import BottomNumberLine from "./BottomNumberLine";
-import { ANIMAL_ROWS, LANGUAGES, PHRASES, MAX_NUMBER_OPTIONS, LanguageCode } from "@/lib/constants";
+import { ANIMAL_ROWS, LANGUAGES, PHRASES, MAX_NUMBER_OPTIONS, LanguageCode, VISIBLE_ROWS_COUNT } from "@/lib/constants";
 import { useGameSettings } from "@/lib/store";
-import { numberToDigitSpeech, playAnimalSound } from "@/lib/audio";
+import { numberToDigitSpeech, playAnimalSound, playDingSound } from "@/lib/audio";
 import confetti from "canvas-confetti";
 
 export default function NumberLineGame() {
-    const { maxNumber, language, soundEnabled, setMaxNumber, setLanguage } = useGameSettings();
+    const { maxNumber, language, soundEnabled, setMaxNumber, setLanguage, toggleSound } = useGameSettings();
     const [currentNumber, setCurrentNumber] = useState(0);
     const [targetNumber, setTargetNumber] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [hintEnabled, setHintEnabled] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
+    const [windowStartRow, setWindowStartRow] = useState(0);
     const gameContainerRef = useRef<HTMLDivElement>(null);
     const activeRowRef = useRef<HTMLDivElement>(null);
 
     const maxRows = Math.ceil(maxNumber / 10);
 
-    // Initialize Game
     const startGame = useCallback(() => {
         const newTarget = Math.floor(Math.random() * maxNumber);
         setTargetNumber(newTarget);
         setCurrentNumber(0);
+        setWindowStartRow(0);
         setIsPlaying(true);
         setShowSuccess(false);
-
-        // Reset view to top
-        if (gameContainerRef.current) {
-            gameContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
-        }
 
         const digitSpeech = numberToDigitSpeech(newTarget, language);
         speakText(`${PHRASES.findNumber[language]} ${digitSpeech}`);
@@ -46,7 +42,6 @@ export default function NumberLineGame() {
         startGame();
     }, [startGame]);
 
-    // TTS Helper - Exciting Voice with Language Support
     const speakText = (text: string) => {
         if (!soundEnabled || !("speechSynthesis" in window)) return;
 
@@ -64,17 +59,6 @@ export default function NumberLineGame() {
         window.speechSynthesis.speak(utterance);
     };
 
-    // Auto-scroll active row into view
-    useEffect(() => {
-        if (activeRowRef.current && gameContainerRef.current) {
-            activeRowRef.current.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center',
-            });
-        }
-    }, [currentNumber]);
-
-    // Check Answer (Manual Confirmation)
     const checkAnswer = useCallback(() => {
         if (!isPlaying) return;
 
@@ -94,7 +78,6 @@ export default function NumberLineGame() {
         }
     }, [currentNumber, targetNumber, isPlaying, language, soundEnabled]);
 
-    // Navigation Logic
     const move = useCallback(
         (direction: "UP" | "DOWN" | "LEFT" | "RIGHT") => {
             if (showSuccess) return;
@@ -116,9 +99,15 @@ export default function NumberLineGame() {
                         break;
                 }
 
-                // Play animal sound on EVERY number change
+                // Play sounds based on movement type
                 const newRow = Math.floor(next / 10);
-                playAnimalSound(newRow, soundEnabled);
+                const oldRow = Math.floor(prev / 10);
+
+                if (newRow !== oldRow) {
+                    playAnimalSound(newRow, soundEnabled);
+                } else {
+                    playDingSound(soundEnabled);
+                }
 
                 return next;
             });
@@ -126,7 +115,6 @@ export default function NumberLineGame() {
         [showSuccess, maxNumber, soundEnabled]
     );
 
-    // Keyboard Listeners
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             switch (e.key) {
@@ -154,6 +142,23 @@ export default function NumberLineGame() {
     }, [move, checkAnswer]);
 
     const currentRow = Math.floor(currentNumber / 10);
+
+    // Update window position to keep current row visible
+    useEffect(() => {
+        const windowEndRow = windowStartRow + VISIBLE_ROWS_COUNT - 1;
+
+        // If current row is below visible window, shift window down
+        if (currentRow > windowEndRow) {
+            setWindowStartRow(currentRow - VISIBLE_ROWS_COUNT + 1);
+        }
+        // If current row is above visible window, shift window up
+        else if (currentRow < windowStartRow) {
+            setWindowStartRow(currentRow);
+        }
+    }, [currentRow, windowStartRow]);
+
+    // Calculate visible rows
+    const visibleRows = ANIMAL_ROWS.slice(windowStartRow, Math.min(windowStartRow + VISIBLE_ROWS_COUNT, maxRows));
 
     return (
         <div className="flex flex-col h-screen max-h-screen overflow-hidden bg-sky-50">
@@ -185,11 +190,8 @@ export default function NumberLineGame() {
                     >
                         {hintEnabled ? `🌟 ${PHRASES.hintOn[language]}` : `⭐ ${PHRASES.hintOff[language]}`}
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => {
-                        const digitSpeech = numberToDigitSpeech(targetNumber, language);
-                        speakText(`${PHRASES.findNumber[language]} ${digitSpeech}`);
-                    }}>
-                        <Volume2 className="w-6 h-6" />
+                    <Button variant="outline" size="sm" onClick={toggleSound}>
+                        <Volume2 className={`w-5 h-5 ${soundEnabled ? 'text-blue-600' : 'text-gray-400'}`} />
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => setShowSettings(!showSettings)}>
                         <Settings className="w-6 h-6" />
@@ -236,55 +238,60 @@ export default function NumberLineGame() {
                 </motion.div>
             )}
 
-            {/* Game Area - Scrollable Rows with Improved Visibility */}
-            <div ref={gameContainerRef} className="flex-1 overflow-y-auto p-2 scroll-smooth">
-                <div className="flex flex-col justify-center min-h-full py-4">
-                    {ANIMAL_ROWS.slice(0, maxRows).map((row) => {
-                        const isActive = row.id === currentRow;
-                        return (
-                            <motion.div
-                                key={row.id}
-                                ref={isActive ? activeRowRef : null}
-                                animate={{
-                                    scale: isActive ? 1.15 : 0.75,
-                                    opacity: isActive ? 1 : 0.5,
-                                }}
-                                transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                                className="my-1 max-w-full overflow-hidden"
-                            >
-                                <AnimalRow
-                                    rowId={row.id}
-                                    startNumber={row.id * 10}
-                                    currentNumber={currentNumber}
-                                    targetNumber={targetNumber}
-                                    hintEnabled={hintEnabled}
-                                />
-                            </motion.div>
-                        );
-                    })}
+            {/* Game Area */}
+            <div ref={gameContainerRef} className="flex-1 overflow-hidden p-4 flex items-center justify-center">
+                <div className="flex flex-col gap-4 w-full">
+                    <AnimatePresence mode="popLayout" initial={false}>
+                        {visibleRows.map((row) => {
+                            const isActive = row.id === currentRow;
+                            return (
+                                <motion.div
+                                    key={row.id}
+                                    ref={isActive ? activeRowRef : null}
+                                    layout
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{
+                                        opacity: isActive ? 1 : 0.5,
+                                        scale: isActive ? 1.0 : 0.75,
+                                        y: 0
+                                    }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                                    className="w-full"
+                                >
+                                    <AnimalRow
+                                        rowId={row.id}
+                                        startNumber={row.id * 10}
+                                        currentNumber={currentNumber}
+                                        targetNumber={targetNumber}
+                                        hintEnabled={hintEnabled}
+                                    />
+                                </motion.div>
+                            );
+                        })}
+                    </AnimatePresence>
                 </div>
             </div>
 
-            {/* Bottom Number Line */}
             <BottomNumberLine currentNumber={currentNumber} targetNumber={targetNumber} />
 
             {/* On-screen Controls */}
-            <div className="flex-none p-4 bg-white border-t border-gray-100 flex justify-center gap-4">
-                <Button size="lg" variant="secondary" onClick={() => move("UP")}>
-                    <ArrowUp className="w-8 h-8" />
+            <div className="flex-none p-2 bg-white border-t border-gray-100 flex justify-center gap-2">
+                <Button size="md" variant="secondary" onClick={() => move("UP")}>
+                    <ArrowUp className="w-6 h-6" />
                 </Button>
-                <div className="flex gap-4">
-                    <Button size="lg" variant="primary" onClick={() => move("LEFT")}>
-                        <ArrowLeft className="w-8 h-8" />
+                <div className="flex gap-2">
+                    <Button size="md" variant="primary" onClick={() => move("LEFT")}>
+                        <ArrowLeft className="w-6 h-6" />
                     </Button>
-                    <Button size="lg" variant="primary" onClick={() => move("RIGHT")}>
-                        <ArrowRight className="w-8 h-8" />
+                    <Button size="md" variant="primary" onClick={() => move("RIGHT")}>
+                        <ArrowRight className="w-6 h-6" />
                     </Button>
                 </div>
-                <Button size="lg" variant="secondary" onClick={() => move("DOWN")}>
-                    <ArrowDown className="w-8 h-8" />
+                <Button size="md" variant="secondary" onClick={() => move("DOWN")}>
+                    <ArrowDown className="w-6 h-6" />
                 </Button>
-                <Button size="lg" variant="primary" className="bg-green-500 hover:bg-green-600 border-green-700 w-32" onClick={checkAnswer}>
+                <Button size="md" variant="primary" className="bg-green-500 hover:bg-green-600 border-green-700 w-24 font-bold" onClick={checkAnswer}>
                     GO!
                 </Button>
             </div>

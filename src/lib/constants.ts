@@ -1,20 +1,20 @@
 export const ANIMAL_ROWS = [
-    { id: 0, name: "Dog", emoji: "🐶", color: "bg-[#FEF3C7]", borderColor: "border-amber-300" },
-    { id: 1, name: "Cat", emoji: "🐱", color: "bg-[#FFEDD5]", borderColor: "border-orange-300" },
-    { id: 2, name: "Mouse", emoji: "🐭", color: "bg-[#FEE2E2]", borderColor: "border-red-300" },
-    { id: 3, name: "Rabbit", emoji: "🐰", color: "bg-[#FCE7F3]", borderColor: "border-pink-300" },
-    { id: 4, name: "Fox", emoji: "🦊", color: "bg-[#F3E8FF]", borderColor: "border-purple-300" },
-    { id: 5, name: "Bear", emoji: "🐻", color: "bg-[#DBEAFE]", borderColor: "border-blue-300" },
-    { id: 6, name: "Panda", emoji: "🐼", color: "bg-[#E0F2FE]", borderColor: "border-sky-300" },
-    { id: 7, name: "Koala", emoji: "🐨", color: "bg-[#CCFBF1]", borderColor: "border-teal-300" },
-    { id: 8, name: "Tiger", emoji: "🐯", color: "bg-[#DCFCE7]", borderColor: "border-emerald-300" },
-    { id: 9, name: "Lion", emoji: "🦁", color: "bg-[#ECFCCB]", borderColor: "border-lime-300" },
+    { id: 0, name: "Dog", emoji: "🐶", image: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f436.svg", color: "bg-[#FEF3C7]", borderColor: "border-amber-300" },
+    { id: 1, name: "Cat", emoji: "🐱", image: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f431.svg", color: "bg-[#FFEDD5]", borderColor: "border-orange-300" },
+    { id: 2, name: "Mouse", emoji: "🐭", image: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f42d.svg", color: "bg-[#FEE2E2]", borderColor: "border-red-300" },
+    { id: 3, name: "Rabbit", emoji: "🐰", image: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f430.svg", color: "bg-[#FCE7F3]", borderColor: "border-pink-300" },
+    { id: 4, name: "Fox", emoji: "🦊", image: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f98a.svg", color: "bg-[#F3E8FF]", borderColor: "border-purple-300" },
+    { id: 5, name: "Bear", emoji: "🐻", image: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f43b.svg", color: "bg-[#DBEAFE]", borderColor: "border-blue-300" },
+    { id: 6, name: "Panda", emoji: "🐼", image: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f43c.svg", color: "bg-[#E0F2FE]", borderColor: "border-sky-300" },
+    { id: 7, name: "Koala", emoji: "🐨", image: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f428.svg", color: "bg-[#CCFBF1]", borderColor: "border-teal-300" },
+    { id: 8, name: "Tiger", emoji: "🐯", image: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f42f.svg", color: "bg-[#DCFCE7]", borderColor: "border-emerald-300" },
+    { id: 9, name: "Lion", emoji: "🦁", image: "https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/1f981.svg", color: "bg-[#ECFCCB]", borderColor: "border-lime-300" },
 ];
 
 export const TOTAL_NUMBERS = 100;
 export const NUMBERS_PER_ROW = 10;
+export const VISIBLE_ROWS_COUNT = 5;
 
-// Language configurations
 export const LANGUAGES = {
     en: { name: "English", code: "en-US", flag: "🇺🇸" },
     hi: { name: "हिंदी", code: "hi-IN", flag: "🇮🇳" },
@@ -24,7 +24,6 @@ export const LANGUAGES = {
 
 export type LanguageCode = keyof typeof LANGUAGES;
 
-// Number translations
 export const NUMBER_WORDS: Record<LanguageCode, (num: number) => string> = {
     en: (num) => num.toString(),
     hi: (num) => {
@@ -38,7 +37,6 @@ export const NUMBER_WORDS: Record<LanguageCode, (num: number) => string> = {
     },
 };
 
-// Phrase translations
 export const PHRASES = {
     findNumber: {
         en: "Can you find the number",
@@ -102,7 +100,6 @@ export const PHRASES = {
     },
 } as const;
 
-// Game settings defaults
 export const DEFAULT_SETTINGS = {
     maxNumber: 100,
     language: "en" as LanguageCode,
