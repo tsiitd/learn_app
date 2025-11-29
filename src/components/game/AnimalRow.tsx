@@ -86,7 +86,7 @@ export default function AnimalRow({
                                     y: { repeat: isCurrent ? Infinity : 0, duration: 0.5 }
                                 }}
                                 className={cn(
-                                    "w-11 h-11 rounded-full flex items-center justify-center text-2xl font-black z-10 cursor-pointer",
+                                    "w-11 h-11 rounded-full flex items-center justify-center text-4xl font-black z-10 cursor-pointer",
                                     !isCurrent && themeTextColor,
                                     isCurrent ? "shadow-lg ring-4 ring-white" : ""
                                 )}

@@ -45,7 +45,7 @@ export function playAnimalSound(rowId: number, soundEnabled: boolean = true): vo
 export function playDingSound(soundEnabled: boolean = true): void {
     if (!soundEnabled) return;
 
-    const dingUrl = '/sounds/ding.flac';
+    const dingUrl = '/sounds/ding.wav';
 
     const audio = new Audio(dingUrl);
     audio.volume = 0.2;

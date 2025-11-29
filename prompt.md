@@ -1,0 +1,3 @@
+ the autoscroll is not working properly. only the first 4 rows stay in view and anything lower rows, are out of view even when we go to them.
+
+ i think the issue is coming from having 2 differnt panes with scrollers: the grid with vertical scroller and the full scale with horizontal scroller. i have showed a screenshot which has current number at 59, but that row is out of view. this kind of thing is causing a lot of confusion. can we have the bottom 0-100 scale sized such that all of it is visile at once. Also we've got to ensure that the row in which we currently are, has to be centered and in view in the first pane.

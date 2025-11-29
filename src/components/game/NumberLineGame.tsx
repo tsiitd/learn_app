@@ -240,7 +240,7 @@ export default function NumberLineGame() {
 
             {/* Game Area */}
             <div ref={gameContainerRef} className="flex-1 overflow-hidden p-4 flex items-center justify-center">
-                <div className="flex flex-col gap-4 w-full">
+                <div className="flex flex-col gap-1 w-full">
                     <AnimatePresence mode="popLayout" initial={false}>
                         {visibleRows.map((row) => {
                             const isActive = row.id === currentRow;
@@ -252,7 +252,7 @@ export default function NumberLineGame() {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{
                                         opacity: isActive ? 1 : 0.5,
-                                        scale: isActive ? 1.0 : 0.75,
+                                        scale: isActive ? 0.95 : 0.75,
                                         y: 0
                                     }}
                                     exit={{ opacity: 0, y: -20 }}
