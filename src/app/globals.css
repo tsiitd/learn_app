@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+:root {
+  /* Base */
+  --background: #F0F9FF; /* Sky-50 */
+  --foreground: #171717;
+
+  /* Primary */
+  --primary-red: #EF4444;
+  --primary-yellow: #FACC15;
+  --primary-blue: #3B82F6;
+
+  /* Secondary */
+  --secondary-green: #22C55E;
+  --secondary-orange: #F97316;
+  --secondary-purple: #A855F7;
+  
+  /* Animal Row Colors (10 rows) */
+  --row-0: #FEF3C7; /* Amber-100 (Dog) */
+  --row-1: #FFEDD5; /* Orange-100 (Cat) */
+  --row-2: #FEE2E2; /* Red-100 */
+  --row-3: #FCE7F3; /* Pink-100 */
+  --row-4: #F3E8FF; /* Purple-100 */
+  --row-5: #DBEAFE; /* Blue-100 */
+  --row-6: #E0F2FE; /* Sky-100 */
+  --row-7: #CCFBF1; /* Teal-100 */
+  --row-8: #DCFCE7; /* Emerald-100 */
+  --row-9: #ECFCCB; /* Lime-100 */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  
+  --color-primary-red: var(--primary-red);
+  --color-primary-yellow: var(--primary-yellow);
+  --color-primary-blue: var(--primary-blue);
+  
+  --color-secondary-green: var(--secondary-green);
+  --color-secondary-orange: var(--secondary-orange);
+  --color-secondary-purple: var(--secondary-purple);
+
+  --font-sans: var(--font-fredoka);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-fredoka), sans-serif;
+}
