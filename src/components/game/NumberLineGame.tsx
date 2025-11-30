@@ -7,9 +7,9 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown, RefreshCw, Volume2, Settings } from "lucide-react";
 import AnimalRow from "./AnimalRow";
 import BottomNumberLine from "./BottomNumberLine";
-import { ANIMAL_ROWS, LANGUAGES, PHRASES, MAX_NUMBER_OPTIONS, LanguageCode, VISIBLE_ROWS_COUNT, BACKGROUND_PATTERNS } from "@/lib/constants";
+import { ANIMAL_ROWS, LANGUAGES, PHRASES, MAX_NUMBER_OPTIONS, LanguageCode, VISIBLE_ROWS_COUNT, BACKGROUND_PATTERNS, IDLE_HINT_INTERVAL, NUMBER_SELECTION_DELAY } from "@/lib/constants";
 import { useGameSettings } from "@/lib/store";
-import { numberToDigitSpeech, playAnimalSound, playDingSound } from "@/lib/audio";
+import { numberToDigitSpeech, playAnimalSound, playDingSound, playClappingSound } from "@/lib/audio";
 import confetti from "canvas-confetti";
 
 export default function NumberLineGame() {
@@ -21,6 +21,8 @@ export default function NumberLineGame() {
     const [hintEnabled, setHintEnabled] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
     const [windowStartRow, setWindowStartRow] = useState(0);
+    const [gameTime, setGameTime] = useState(0);
+    const [isJiggling, setIsJiggling] = useState(false);
     const [backgroundPattern, setBackgroundPattern] = useState(
         BACKGROUND_PATTERNS[Math.floor(Math.random() * BACKGROUND_PATTERNS.length)].pattern
     );
@@ -35,7 +37,10 @@ export default function NumberLineGame() {
         setCurrentNumber(0);
         setWindowStartRow(0);
         setIsPlaying(true);
+        setIsPlaying(true);
         setShowSuccess(false);
+        setGameTime(0);
+        setIsJiggling(false);
 
         // Randomly select a new background pattern
         const randomPattern = BACKGROUND_PATTERNS[Math.floor(Math.random() * BACKGROUND_PATTERNS.length)];
@@ -77,8 +82,7 @@ export default function NumberLineGame() {
                 origin: { y: 0.6 },
                 colors: ['#EF4444', '#FACC15', '#3B82F6', '#22C55E']
             });
-            const digitSpeech = numberToDigitSpeech(targetNumber, language);
-            speakText(`${PHRASES.youFound[language]} ${digitSpeech}`);
+            playClappingSound(soundEnabled);
         } else {
             const digitSpeech = numberToDigitSpeech(currentNumber, language);
             speakText(`${PHRASES.thisIs[language]} ${digitSpeech}`);
@@ -122,6 +126,44 @@ export default function NumberLineGame() {
         [showSuccess, maxNumber, soundEnabled]
     );
 
+    // Debounced Number Speech
+    useEffect(() => {
+        if (!isPlaying || showSuccess) return;
+
+        // Cancel any ongoing speech when number changes
+        window.speechSynthesis.cancel();
+
+        const timer = setTimeout(() => {
+            const digitSpeech = numberToDigitSpeech(currentNumber, language);
+            speakText(digitSpeech);
+        }, NUMBER_SELECTION_DELAY);
+
+        return () => {
+            clearTimeout(timer);
+            window.speechSynthesis.cancel();
+        };
+    }, [currentNumber, isPlaying, showSuccess, language]);
+
+    // Game Timer and Idle Hint Logic
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (isPlaying && !showSuccess) {
+            interval = setInterval(() => {
+                setGameTime((prev) => {
+                    const newTime = prev + 1;
+                    if (newTime > 0 && newTime % IDLE_HINT_INTERVAL === 0) {
+                        const targetRow = Math.floor(targetNumber / 10);
+                        playAnimalSound(targetRow, soundEnabled);
+                        setIsJiggling(true);
+                        setTimeout(() => setIsJiggling(false), 5000);
+                    }
+                    return newTime;
+                });
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [isPlaying, showSuccess, targetNumber, soundEnabled]);
+
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             switch (e.key) {
@@ -163,6 +205,16 @@ export default function NumberLineGame() {
             setWindowStartRow(currentRow);
         }
     }, [currentRow, windowStartRow]);
+
+    // Auto-disable hint after 30 seconds
+    useEffect(() => {
+        if (hintEnabled) {
+            const timer = setTimeout(() => {
+                setHintEnabled(false);
+            }, 30000);
+            return () => clearTimeout(timer);
+        }
+    }, [hintEnabled]);
 
     // Calculate visible rows
     const windowEndRow = Math.min(windowStartRow + VISIBLE_ROWS_COUNT, maxRows);
@@ -295,6 +347,7 @@ export default function NumberLineGame() {
                                         currentNumber={currentNumber}
                                         targetNumber={targetNumber}
                                         hintEnabled={hintEnabled}
+                                        isJiggling={isJiggling && Math.floor(targetNumber / 10) === row.id}
                                     />
                                 </motion.div>
                             );
@@ -305,28 +358,37 @@ export default function NumberLineGame() {
 
             <BottomNumberLine currentNumber={currentNumber} targetNumber={targetNumber} />
 
+            {/* Idle Timer UI */}
+            <div className="fixed bottom-4 right-4 text-gray-300 font-mono text-sm pointer-events-none select-none z-50">
+                {Math.floor(gameTime / 60)}:{(gameTime % 60).toString().padStart(2, '0')}
+            </div>
+
             {/* On-screen Controls */}
             <div
-                className="flex-none p-2 bg-white border-t border-gray-100 flex justify-center gap-2"
+                className="flex-none p-6 bg-white border-t border-gray-100 flex justify-center gap-2"
                 style={{ backgroundImage: `url("${backgroundPattern}")` }}
             >
-                <Button size="md" variant="primary" onClick={() => move("UP")}>
-                    <ArrowUp className="w-6 h-6" />
-                </Button>
                 <div className="flex gap-2">
-                    <Button size="md" variant="secondary" onClick={() => move("LEFT")}>
-                        <ArrowLeft className="w-6 h-6" />
+                    <Button size="lg" variant="secondary" className="w-20 h-20" onClick={() => move("LEFT")}>
+                        <span className="text-4xl">←</span>
                     </Button>
-                    <Button size="md" variant="secondary" onClick={() => move("RIGHT")}>
-                        <ArrowRight className="w-6 h-6" />
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <Button size="lg" variant="secondary" className="w-20 h-20" onClick={() => move("RIGHT")}>
+                        <span className="text-4xl">→</span>
                     </Button>
                 </div>
-                <Button size="md" variant="primary" onClick={() => move("DOWN")}>
-                    <ArrowDown className="w-6 h-6" />
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <Button size="lg" variant="primary" className="w-20 h-20" onClick={() => move("UP")}>
+                    <span className="text-4xl">↑</span>
+                </Button>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <Button size="lg" variant="primary" className="w-20 h-20 " onClick={() => move("DOWN")}>
+                    <span className="text-4xl">↓</span>
                 </Button>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <Button size="md" variant="primary" className="bg-green-500 hover:bg-green-600 border-green-700 w-24 font-bold" onClick={checkAnswer}>
+                <Button size="lg" variant="primary" className="bg-green-500 hover:bg-green-600 border-green-700 w-36 h-20 text-3xl font-bold" onClick={checkAnswer}>
                     Enter
                 </Button>
             </div>

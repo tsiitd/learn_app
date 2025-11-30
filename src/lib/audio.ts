@@ -13,6 +13,11 @@ export function numberToDigitSpeech(num: number, language: string = 'en'): strin
     const names = digitNames[language] || digitNames.en;
     const digitSpeech = digits.map(d => names[parseInt(d)]).join(' ');
 
+    // For single-digit numbers, only say the digit name (avoid redundancy)
+    if (num >= 0 && num <= 9) {
+        return digitSpeech;
+    }
+
     return `${digitSpeech} - ${num}`;
 }
 
@@ -49,5 +54,16 @@ export function playDingSound(soundEnabled: boolean = true): void {
 
     const audio = new Audio(dingUrl);
     audio.volume = 0.2;
+    audio.play().catch(() => { });
+}
+
+// Play clapping sound for correct answer
+export function playClappingSound(soundEnabled: boolean = true): void {
+    if (!soundEnabled) return;
+
+    const clappingUrl = '/sounds/clapping.mp3';
+
+    const audio = new Audio(clappingUrl);
+    audio.volume = 0.4;
     audio.play().catch(() => { });
 }

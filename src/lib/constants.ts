@@ -14,6 +14,8 @@ export const ANIMAL_ROWS = [
 export const TOTAL_NUMBERS = 100;
 export const NUMBERS_PER_ROW = 10;
 export const VISIBLE_ROWS_COUNT = 5;
+export const IDLE_HINT_INTERVAL = 30;
+export const NUMBER_SELECTION_DELAY = 250;
 
 export const LANGUAGES = {
     en: { name: "English", code: "en-US", flag: "🇺🇸" },

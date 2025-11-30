@@ -8,6 +8,7 @@ interface AnimalRowProps {
     currentNumber: number;
     targetNumber: number;
     hintEnabled: boolean;
+    isJiggling?: boolean;
 }
 
 export default function AnimalRow({
@@ -16,6 +17,7 @@ export default function AnimalRow({
     currentNumber,
     targetNumber,
     hintEnabled,
+    isJiggling = false,
 }: AnimalRowProps) {
     const rowData = ANIMAL_ROWS[rowId];
     const numbers = Array.from({ length: 10 }, (_, i) => startNumber + i);
@@ -26,7 +28,7 @@ export default function AnimalRow({
             animate={isActiveRow ? { scale: 1.02, y: -5 } : { scale: 1, y: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className={cn(
-                "flex items-center h-26 px-3 mb-3 rounded-3xl transition-all duration-300",
+                "flex items-center h-26 px-3 mb-2 rounded-3xl transition-all duration-300",
                 rowData.color,
                 "border-4 border-transparent",
                 isActiveRow
@@ -36,11 +38,11 @@ export default function AnimalRow({
         >
             {/* Animal Icon - Using Twemoji images */}
             <motion.div
-                animate={isActiveRow ? {
+                animate={isActiveRow || isJiggling ? {
                     rotate: [0, -10, 10, -10, 10, 0],
                     scale: [1, 1.1, 1.1, 1.1, 1.1, 1]
                 } : {}}
-                transition={{ duration: 2, repeat: isActiveRow ? Infinity : 0, repeatDelay: 1 }}
+                transition={{ duration: 2, repeat: isActiveRow || isJiggling ? Infinity : 0, repeatDelay: 1 }}
                 className="w-19 h-19 flex items-center justify-center mr-5 bg-white/60 rounded-full shadow-sm p-3"
             >
                 <img
@@ -78,10 +80,12 @@ export default function AnimalRow({
                                     scale: isCurrent ? 1.3 : 1,
                                     backgroundColor: isCurrent ? "#3B82F6" : "transparent",
                                     color: isCurrent ? "#FFFFFF" : rowData.numberColor,
-                                    y: isCurrent ? [0, -5, 0] : 0,
+                                    y: isCurrent ? [0, -5, 0] : isJiggling ? [0, -3, 3, -3, 3, 0] : 0,
+                                    rotate: isJiggling ? [0, -5, 5, -5, 5, 0] : 0,
                                 }}
                                 transition={{
-                                    y: { repeat: isCurrent ? Infinity : 0, duration: 0.5 }
+                                    y: { repeat: isCurrent || isJiggling ? Infinity : 0, duration: 0.5 },
+                                    rotate: { repeat: isJiggling ? Infinity : 0, duration: 0.5 }
                                 }}
                                 className={cn(
                                     "w-11 h-11 rounded-full flex items-center justify-center text-4xl font-black z-20 cursor-pointer relative",
