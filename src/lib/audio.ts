@@ -1,3 +1,6 @@
+// Get basePath from environment (set in next.config.ts)
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 // Helper function to convert number to digit-by-digit speech
 export function numberToDigitSpeech(num: number, language: string = 'en'): string {
     const numStr = num.toString();
@@ -26,16 +29,16 @@ export function playAnimalSound(rowId: number, soundEnabled: boolean = true): vo
     if (!soundEnabled) return;
 
     const animalSounds: Record<number, string> = {
-        0: '/sounds/dog.wav',
-        1: '/sounds/cat.wav',
-        2: '/sounds/mouse.wav',
-        3: '/sounds/rabbit.wav',
-        4: '/sounds/fox.wav',
-        5: '/sounds/bear.wav',
-        6: '/sounds/panda.wav',
-        7: '/sounds/koala.wav',
-        8: '/sounds/tiger.mp3',
-        9: '/sounds/lion.wav',
+        0: `${basePath}/sounds/dog.wav`,
+        1: `${basePath}/sounds/cat.wav`,
+        2: `${basePath}/sounds/mouse.wav`,
+        3: `${basePath}/sounds/rabbit.wav`,
+        4: `${basePath}/sounds/fox.wav`,
+        5: `${basePath}/sounds/bear.wav`,
+        6: `${basePath}/sounds/panda.wav`,
+        7: `${basePath}/sounds/koala.wav`,
+        8: `${basePath}/sounds/tiger.mp3`,
+        9: `${basePath}/sounds/lion.wav`,
     };
 
     const soundUrl = animalSounds[rowId];
@@ -50,7 +53,7 @@ export function playAnimalSound(rowId: number, soundEnabled: boolean = true): vo
 export function playDingSound(soundEnabled: boolean = true): void {
     if (!soundEnabled) return;
 
-    const dingUrl = '/sounds/ding.wav';
+    const dingUrl = `${basePath}/sounds/ding.wav`;
 
     const audio = new Audio(dingUrl);
     audio.volume = 0.2;
@@ -61,9 +64,10 @@ export function playDingSound(soundEnabled: boolean = true): void {
 export function playClappingSound(soundEnabled: boolean = true): void {
     if (!soundEnabled) return;
 
-    const clappingUrl = '/sounds/clapping.mp3';
+    const clappingUrl = `${basePath}/sounds/clapping.mp3`;
 
     const audio = new Audio(clappingUrl);
     audio.volume = 0.4;
     audio.play().catch(() => { });
 }
+
