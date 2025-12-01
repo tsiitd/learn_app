@@ -16,6 +16,7 @@ export const NUMBERS_PER_ROW = 10;
 export const VISIBLE_ROWS_COUNT = 5;
 export const IDLE_HINT_INTERVAL = 30;
 export const NUMBER_SELECTION_DELAY = 250;
+export const ROW_CHANGE_SPEECH_DELAY = 500;
 
 // Base path for GitHub Pages deployment
 export const BASE_PATH = '/learn_app';

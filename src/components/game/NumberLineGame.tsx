@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft, ArrowRight, ArrowUp, ArrowDown, RefreshCw, Volume2, Settings } from "lucide-react";
 import AnimalRow from "./AnimalRow";
 import BottomNumberLine from "./BottomNumberLine";
-import { ANIMAL_ROWS, LANGUAGES, PHRASES, MAX_NUMBER_OPTIONS, LanguageCode, VISIBLE_ROWS_COUNT, BACKGROUND_PATTERNS, IDLE_HINT_INTERVAL, NUMBER_SELECTION_DELAY } from "@/lib/constants";
+import { ANIMAL_ROWS, LANGUAGES, PHRASES, MAX_NUMBER_OPTIONS, LanguageCode, VISIBLE_ROWS_COUNT, BACKGROUND_PATTERNS, IDLE_HINT_INTERVAL, NUMBER_SELECTION_DELAY, ROW_CHANGE_SPEECH_DELAY } from "@/lib/constants";
 import { useGameSettings } from "@/lib/store";
 import { numberToDigitSpeech, playAnimalSound, playDingSound, playClappingSound } from "@/lib/audio";
 import confetti from "canvas-confetti";
@@ -28,6 +28,7 @@ export default function NumberLineGame() {
     );
     const gameContainerRef = useRef<HTMLDivElement>(null);
     const activeRowRef = useRef<HTMLDivElement>(null);
+    const previousRowRef = useRef<number>(0);
 
     const maxRows = Math.ceil(maxNumber / 10);
 
@@ -47,7 +48,13 @@ export default function NumberLineGame() {
         setBackgroundPattern(randomPattern.pattern);
 
         const digitSpeech = numberToDigitSpeech(newTarget, language);
-        speakText(`${PHRASES.findNumber[language]} ${digitSpeech}`);
+
+        // Small delay to ensure voices are loaded and state is ready
+        setTimeout(() => {
+            speakText(`${PHRASES.findNumber[language]} ${digitSpeech}`);
+        }, 500);
+
+        previousRowRef.current = 0;
     }, [maxNumber, language]);
 
     useEffect(() => {
@@ -60,12 +67,21 @@ export default function NumberLineGame() {
         window.speechSynthesis.cancel();
 
         const utterance = new SpeechSynthesisUtterance(text);
-        const voices = window.speechSynthesis.getVoices();
-        const langCode = LANGUAGES[language].code;
-        const preferredVoice = voices.find(v => v.lang.startsWith(langCode.split('-')[0]));
-        if (preferredVoice) utterance.voice = preferredVoice;
 
-        utterance.lang = langCode;
+        const setVoice = () => {
+            const voices = window.speechSynthesis.getVoices();
+            const langCode = LANGUAGES[language].code;
+            const preferredVoice = voices.find(v => v.lang.startsWith(langCode.split('-')[0]));
+            if (preferredVoice) utterance.voice = preferredVoice;
+        };
+
+        if (window.speechSynthesis.getVoices().length === 0) {
+            window.speechSynthesis.onvoiceschanged = setVoice;
+        } else {
+            setVoice();
+        }
+
+        utterance.lang = LANGUAGES[language].code;
         utterance.pitch = 1.2;
         utterance.rate = 0.9;
         window.speechSynthesis.speak(utterance);
@@ -133,10 +149,17 @@ export default function NumberLineGame() {
         // Cancel any ongoing speech when number changes
         window.speechSynthesis.cancel();
 
+        const currentRow = Math.floor(currentNumber / 10);
+        const hasRowChanged = currentRow !== previousRowRef.current;
+
+        // Use longer delay if row changed to allow animal sound to play first
+        const delay = hasRowChanged ? ROW_CHANGE_SPEECH_DELAY : NUMBER_SELECTION_DELAY;
+
         const timer = setTimeout(() => {
             const digitSpeech = numberToDigitSpeech(currentNumber, language);
             speakText(digitSpeech);
-        }, NUMBER_SELECTION_DELAY);
+            previousRowRef.current = currentRow;
+        }, delay);
 
         return () => {
             clearTimeout(timer);
@@ -370,21 +393,21 @@ export default function NumberLineGame() {
             >
                 <div className="flex gap-2">
                     <Button size="lg" variant="secondary" className="w-20 h-20" onClick={() => move("LEFT")}>
-                        <span className="text-4xl">←</span>
+                        <span className="text-6xl">⬅️</span>
                     </Button>
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <Button size="lg" variant="secondary" className="w-20 h-20" onClick={() => move("RIGHT")}>
-                        <span className="text-4xl">→</span>
+                        <span className="text-6xl">➡️</span>
                     </Button>
                 </div>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <Button size="lg" variant="primary" className="w-20 h-20" onClick={() => move("UP")}>
-                    <span className="text-4xl">↑</span>
+                <Button size="lg" variant="secondary" className="w-20 h-20" onClick={() => move("UP")}>
+                    <span className="text-6xl">⬆️</span>
                 </Button>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <Button size="lg" variant="primary" className="w-20 h-20 " onClick={() => move("DOWN")}>
-                    <span className="text-4xl">↓</span>
+                <Button size="lg" variant="secondary" className="w-20 h-20 " onClick={() => move("DOWN")}>
+                    <span className="text-6xl">⬇️</span>
                 </Button>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
