@@ -1,5 +1,4 @@
-// Get basePath from environment (set in next.config.ts)
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+import { BASE_PATH } from './constants';
 
 // Helper function to convert number to digit-by-digit speech
 export function numberToDigitSpeech(num: number, language: string = 'en'): string {
@@ -29,16 +28,16 @@ export function playAnimalSound(rowId: number, soundEnabled: boolean = true): vo
     if (!soundEnabled) return;
 
     const animalSounds: Record<number, string> = {
-        0: `${basePath}/sounds/dog.wav`,
-        1: `${basePath}/sounds/cat.wav`,
-        2: `${basePath}/sounds/mouse.wav`,
-        3: `${basePath}/sounds/rabbit.wav`,
-        4: `${basePath}/sounds/fox.wav`,
-        5: `${basePath}/sounds/bear.wav`,
-        6: `${basePath}/sounds/panda.wav`,
-        7: `${basePath}/sounds/koala.wav`,
-        8: `${basePath}/sounds/tiger.mp3`,
-        9: `${basePath}/sounds/lion.wav`,
+        0: `${BASE_PATH}/sounds/dog.wav`,
+        1: `${BASE_PATH}/sounds/cat.wav`,
+        2: `${BASE_PATH}/sounds/mouse.wav`,
+        3: `${BASE_PATH}/sounds/rabbit.wav`,
+        4: `${BASE_PATH}/sounds/fox.wav`,
+        5: `${BASE_PATH}/sounds/bear.wav`,
+        6: `${BASE_PATH}/sounds/panda.wav`,
+        7: `${BASE_PATH}/sounds/koala.wav`,
+        8: `${BASE_PATH}/sounds/tiger.mp3`,
+        9: `${BASE_PATH}/sounds/lion.wav`,
     };
 
     const soundUrl = animalSounds[rowId];
@@ -53,7 +52,7 @@ export function playAnimalSound(rowId: number, soundEnabled: boolean = true): vo
 export function playDingSound(soundEnabled: boolean = true): void {
     if (!soundEnabled) return;
 
-    const dingUrl = `${basePath}/sounds/ding.wav`;
+    const dingUrl = `${BASE_PATH}/sounds/ding.wav`;
 
     const audio = new Audio(dingUrl);
     audio.volume = 0.2;
@@ -64,7 +63,7 @@ export function playDingSound(soundEnabled: boolean = true): void {
 export function playClappingSound(soundEnabled: boolean = true): void {
     if (!soundEnabled) return;
 
-    const clappingUrl = `${basePath}/sounds/clapping.mp3`;
+    const clappingUrl = `${BASE_PATH}/sounds/clapping.mp3`;
 
     const audio = new Audio(clappingUrl);
     audio.volume = 0.4;

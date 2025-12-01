@@ -17,6 +17,9 @@ export const VISIBLE_ROWS_COUNT = 5;
 export const IDLE_HINT_INTERVAL = 30;
 export const NUMBER_SELECTION_DELAY = 250;
 
+// Base path for GitHub Pages deployment
+export const BASE_PATH = '/learn_app';
+
 export const LANGUAGES = {
     en: { name: "English", code: "en-US", flag: "🇺🇸" },
     hi: { name: "हिंदी", code: "hi-IN", flag: "🇮🇳" },

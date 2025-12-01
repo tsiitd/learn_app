@@ -8,9 +8,6 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true, // Required for static export
   },
-  env: {
-    NEXT_PUBLIC_BASE_PATH: basePath, // Make basePath available to client-side code
-  },
 };
 
 export default nextConfig;
